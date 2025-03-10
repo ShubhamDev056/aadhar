@@ -131,7 +131,7 @@
 
 // export default Register;
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -162,6 +162,8 @@ const schema = yup.object().shape({
 });
 
 const Register = () => {
+  const [serverErrors, setServerErrors] = useState({});
+  console.log("serverErrors", serverErrors);
   const navigate = useNavigate();
   const {
     register,
@@ -191,10 +193,24 @@ const Register = () => {
         navigate("/login");
       }, 3000);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Registration Failed", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      if (err.response) {
+        console.log("Server Response:", err.response.data); // Debugging response
+
+        if (err.response && err.response.data.errors) {
+          const formattedErrors = {};
+          err.response.data.errors.forEach((error) => {
+            formattedErrors[error.path] = error.msg; // Extract errors using `path`
+          });
+
+          setServerErrors(formattedErrors); // Set errors in state
+          console.log("Formatted Errors:", formattedErrors); // Debugging output
+        } else {
+          toast.error("Something went wrong!", {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        }
+      }
     }
   };
 
@@ -224,6 +240,9 @@ const Register = () => {
                     {errors.username && (
                       <p className="text-danger">{errors.username.message}</p>
                     )}
+                    {serverErrors.username && (
+                      <div className="text-danger">{serverErrors.username}</div>
+                    )}
                   </div>
 
                   <div className="form-group">
@@ -236,6 +255,9 @@ const Register = () => {
                     {errors.email && (
                       <p className="text-danger">{errors.email.message}</p>
                     )}
+                    {serverErrors.email && (
+                      <div className="text-danger">{serverErrors.email}</div>
+                    )}
                   </div>
 
                   <div className="form-group">
@@ -247,6 +269,9 @@ const Register = () => {
                     />
                     {errors.password && (
                       <p className="text-danger">{errors.password.message}</p>
+                    )}
+                    {serverErrors.password && (
+                      <div className="text-danger">{serverErrors.password}</div>
                     )}
                   </div>
 
@@ -261,6 +286,9 @@ const Register = () => {
                       <p className="text-danger">
                         {errors.confirmPassword.message}
                       </p>
+                    )}
+                    {serverErrors.confirmPassword && (
+                      <div className="text-danger">{serverErrors.confirmPassword}</div>
                     )}
                   </div>
 
